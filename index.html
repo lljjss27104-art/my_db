@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>바이브 카페 - 주문서</title>
+  <!-- 외부 스타일시트 연결 (디자인은 추후 작성) -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- [페이지 상단] 카페 헤더 정보 -->
+  <header>
+    <!-- 카페 로고: ☕ 이모지 -->
+    <div style="font-size: 3rem;">☕</div>
+    <!-- 카페 이름 -->
+    <h1>바이브 카페</h1>
+    <!-- 부제 -->
+    <p>당신의 하루에 바이브를 더하다</p>
+  </header>
+
+  <!-- [탭 메뉴] 주문하기 탭 / 주문 내역 탭 -->
+  <nav class="tab-menu">
+    <button type="button" class="tab-btn active" id="tab-order-btn">☕ 주문하기</button>
+    <button type="button" class="tab-btn" id="tab-history-btn">
+      📋 주문 내역 <span id="order-count-badge" class="badge">0</span>
+    </button>
+  </nav>
+
+  <!-- [1. 주문하기 탭 영역] 주문서 폼 및 주문 확인 메시지 -->
+  <div id="order-tab-panel" class="tab-panel">
+    <!-- [주문서 폼] novalidate: 자바스크립트를 통한 직접 유효성 검사를 위해 브라우저 기본 검증 비활성화 -->
+    <form id="order-form" novalidate>
+      <!-- 1. 이름 (필수, text) -->
+      <div>
+        <label for="customer-name">이름</label>
+        <input type="text" id="customer-name" name="customerName" required>
+      </div>
+
+      <!-- 2. 전화번호 (tel) -->
+      <div>
+        <label for="customer-phone">전화번호</label>
+        <input type="tel" id="customer-phone" name="customerPhone">
+      </div>
+
+      <!-- 3. 음료 선택 (드롭다운) -->
+      <div>
+        <label for="drink-select">음료 선택</label>
+        <select id="drink-select" name="drink">
+          <option value="" data-price="0">-- 음료를 선택하세요 --</option>
+          <option value="americano" data-price="3500">아메리카노 3,500원</option>
+          <option value="latte" data-price="4000">카페라떼 4,000원</option>
+          <option value="mocha" data-price="4500">카페모카 4,500원</option>
+          <option value="vanilla-latte" data-price="4500">바닐라라떼 4,500원</option>
+          <option value="green-tea-latte" data-price="4500">녹차라떼 4,500원</option>
+          <option value="ashotchu" data-price="4000">아샷추 4,000원</option>
+          <option value="matcha-latte" data-price="4500">말차라떼 4,500원</option>
+        </select>
+      </div>
+
+      <!-- 4. 사이즈 (라디오) -->
+      <fieldset>
+        <legend>사이즈</legend>
+        <input type="radio" id="size-s" name="size" value="S" data-price="0">
+        <label for="size-s">S +0원</label>
+
+        <input type="radio" id="size-m" name="size" value="M" data-price="500" checked>
+        <label for="size-m">M +500원</label>
+
+        <input type="radio" id="size-l" name="size" value="L" data-price="1000">
+        <label for="size-l">L +1,000원</label>
+      </fieldset>
+
+      <!-- 5. 추가 옵션 (체크박스) -->
+      <fieldset>
+        <legend>추가 옵션</legend>
+        <input type="checkbox" id="opt-shot" name="options" value="shot" data-price="500">
+        <label for="opt-shot">샷 추가 +500원</label>
+
+        <input type="checkbox" id="opt-cream" name="options" value="cream" data-price="500">
+        <label for="opt-cream">크림 추가 +500원</label>
+
+        <input type="checkbox" id="opt-syrup" name="options" value="syrup" data-price="300">
+        <label for="opt-syrup">시럽 추가 +300원</label>
+
+        <input type="checkbox" id="opt-decaf" name="options" value="decaf" data-price="0">
+        <label for="opt-decaf">디카페인 +0원</label>
+      </fieldset>
+
+      <!-- 6. 수량 (number, 최소 1, 최대 10, 기본값 1) -->
+      <div>
+        <label for="quantity">수량</label>
+        <input type="number" id="quantity" name="quantity" min="1" max="10" value="1">
+      </div>
+
+      <!-- 7. 요청사항 (textarea) -->
+      <div>
+        <label for="requests">요청사항</label>
+        <textarea id="requests" name="requests" rows="4"></textarea>
+      </div>
+
+      <!-- 8. 예상 금액 표시 영역 -->
+      <div id="estimated-price-container">
+        예상 금액: <span id="estimated-price">0</span>원
+      </div>
+
+      <!-- 9. 주문하기 버튼 & 10. 다시 작성 버튼 -->
+      <div>
+        <button type="submit" id="submit-btn">주문하기</button>
+        <button type="reset" id="reset-btn">다시 작성</button>
+      </div>
+    </form>
+
+    <!-- 11. 주문 확인 메시지 표시 영역 (초기 상태 숨김) -->
+    <div id="order-confirmation" class="hidden" hidden></div>
+  </div>
+
+  <!-- [2. 주문 내역 탭 영역] 접수된 주문 목록 (초기 상태 숨김) -->
+  <div id="history-tab-panel" class="tab-panel hidden">
+    <!-- 주문 카드들이 동적으로 추가되는 목록 컨테이너 -->
+    <div id="order-list"></div>
+
+    <!-- 주문이 없을 때 나타나는 안내 문구 -->
+    <div id="empty-history-msg" class="empty-history">아직 주문 내역이 없어요 ☕</div>
+
+    <!-- 하단 총 주문 금액 요약 및 전체 지우기 버튼 -->
+    <div id="order-summary-container" class="order-summary hidden">
+      <div id="order-total-summary">
+        총 주문 금액: <span id="all-orders-total">0</span>원 (<span id="all-orders-count">0</span>건)
+      </div>
+      <button type="button" id="clear-all-btn">내역 모두 지우기</button>
+    </div>
+  </div>
+
+  <!-- Supabase JS v2 CDN 라이브러리 연결 (script.js보다 먼저 로드) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 자바스크립트 연결 -->
+  <script src="script.js"></script>
+</body>
+</html>
+
